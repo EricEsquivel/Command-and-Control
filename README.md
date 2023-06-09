@@ -1,4 +1,4 @@
-# Command-and-Control
+# Command-and-Control Latest: v1.1.0
 # This is my next project a command and control server.
 # The server uses threading to talk to multiple clients at the same time (this has only been tested locally not across the internet)
 # MAKE SURE TO ADD THE IP FOR THE SERVER ON BOTH THE SERVER AND CLIENT FILE!
