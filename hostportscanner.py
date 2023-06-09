@@ -49,4 +49,5 @@ def main():
 
     #Display open ports, closed ports, and time taken to finish process
     endtime = time.time()
+    global timepassed
     timepassed = round(endtime - starttime, 2)
