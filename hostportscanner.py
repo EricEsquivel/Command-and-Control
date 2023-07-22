@@ -1,5 +1,7 @@
-#portscanner by E
-#edited version of my 'budgetportscanner' to fit command and control
+## ==================================================================================================================== #
+# edited version of my 'budgetportscanner' to fit command and control                                                                                  #
+# Made by Eric E. Github: https://github.com/EricEsquivel                                                              #
+# ==================================================================================================================== #
 
 import socket
 import time
